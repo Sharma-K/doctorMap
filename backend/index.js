@@ -12,6 +12,8 @@ const session = require('express-session');
 const mbxGeocoding = require("@mapbox/mapbox-sdk/services/geocoding");
 const mapBoxToken = process.env.MAPBOX_TOKEN
 const geocoder = mbxGeocoding({accessToken: mapBoxToken});
+const satelize = require('satelize');
+const geoip = require('geoip-lite');
 
 
 
@@ -77,18 +79,40 @@ async function main() {
   });
   
 }
+let cUser;
+app.post('/', (req, res)=>{
+   cUser = req.user;
+   console.log('cUser', cUser);
+   var geo = geoip.lookup(cUser.ip).ll;
+   console.log('geo',geo);
+  
+res.send(req.user);
+ 
+})
+
+app.post('/ip', async(req, res)=>{
+ 
+  const user = await User.find({});
+
+  let all = [];
+  for(let u of user)
+  {
+    if(u._id!==cUser._id)
+    {
+     all.push(geoip.lookup(u.ip).ll)
+    }
+  }
+
+res.send(all);
+  
+})
 
 app.post('/database',async(req,res)=>{
   const allUser = await User.find({});
   res.send(allUser);
 } )
 
-app.post('/', (req, res)=>{
-   
-  console.log('**Req***', req.user);
-res.send(req.user);
- 
-})
+
 
 app.post('/logout', function(req, res, next){
     req.logout(function(err) {
@@ -98,6 +122,21 @@ app.post('/logout', function(req, res, next){
   });
 
 
+  app.post('/plogin',passport.authenticate('local'), async(req, res) => {
+
+    try
+    {
+    
+      res.send(req.user._id)
+      
+    }
+    catch(err){
+     
+      res.send('not authorized')
+     
+    }
+  })
+ 
 
 app.post('/login',passport.authenticate('local'), async(req, res) => {
 
@@ -113,6 +152,51 @@ app.post('/login',passport.authenticate('local'), async(req, res) => {
    
   }
 })
+app.post('/pregister', async(req, res) => {
+ 
+
+  
+
+  let ip=0;
+
+const data = await ( await axios.get('https://api.ipify.org/?format=json') ).data;
+
+ip = '103.49.116.68';
+
+console.log('ip', ip);
+ 
+
+
+
+
+
+const { email, name, password, phone } = req.body;
+
+
+const user = new User({ email, name, phone });
+user.ip = ip;
+user.isPatient = 1;
+
+
+
+
+const registeredUser = await User.register(user, password);
+await user.save();
+
+req.login(registeredUser, err =>{
+  if(err) {
+      console.log('this is the error',err);
+      return next(err);
+  }
+  else
+  {
+      // req.flash('sucess', 'Welcome ');
+  // res.redirect('/');
+  res.send('success');
+  }
+});
+
+})
 
 
 app.post('/register', async(req, res) => {
@@ -120,19 +204,25 @@ app.post('/register', async(req, res) => {
     console.log('req body', req.body);
     
 
-    let latGeo =0 , lngGeo =0;
+//     let latGeo =0 , lngGeo =0;
 
-const data = await ( await axios.get('https://ipapi.co/json/') ).data;
+// const data = await ( await axios.get('https://ipapi.co/json/') ).data;
 
-latGeo = data.latitude;
-lngGeo = data.longitude;
+// latGeo = data.latitude;
+// lngGeo = data.longitude;
 
-const geoData = await geocoder.reverseGeocode({
-    query: [latGeo, lngGeo],
+// const geoData = await geocoder.reverseGeocode({
+//     query: [latGeo, lngGeo],
     
-}).send();
+// }).send();
 
 
+
+let ip=0;
+
+const data = await ( await axios.get('https://api.ipify.org/?format=json') ).data;
+
+ip = data.ip;
 
 
 
@@ -142,7 +232,8 @@ const geoData = await geocoder.reverseGeocode({
   
 
   const user = new User({ email, name, phone, hospital });
-  user.geometry ={type: 'Point', coordinates: [28.7197, 77.0661]};
+  user.ip = ip;
+  // user.geometry ={type: 'Point', coordinates: [28.7197, 77.0661]};
   
 
 

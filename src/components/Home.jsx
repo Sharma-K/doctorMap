@@ -1,6 +1,7 @@
 import axios, { all } from "axios";
 import { useEffect, useState, useRef } from "react";
 import mapboxgl from 'mapbox-gl'; // or "const mapboxgl = require('mapbox-gl');"
+
  
 // =pk.eyJ1IjoidGltLWsiLCJhIjoiY2w2amM5dmhjMGthZTNkczIxM3VxcnJudSJ9.cnTV2rDMOu02waoEdaXldA
 mapboxgl.accessToken = 'pk.eyJ1IjoidGltLWsiLCJhIjoiY2w2amM5dmhjMGthZTNkczIxM3VxcnJudSJ9.cnTV2rDMOu02waoEdaXldA';
@@ -35,8 +36,8 @@ let allUser = []
             
            
             setUser(()=>data.name);
-            setLat(() =>data.geometry.coordinates[0]);
-            setLng(()=>data.geometry.coordinates[1]);
+
+            
 
 
             const rs = await axios.post('http://localhost:5000/database');
@@ -51,10 +52,17 @@ let allUser = []
                 }
             }
             console.log('allUsers',allUser);
+
+            const fetchIP = await axios.post('http://localhost:5000/ip');
+            const ipdata = await fetchIP.data;
+            console.log("****",ipdata);
+             setLat(() =>ipdata[1][0]);
+            setLng(()=>ipdata[1][1]);
            
         }
         fetchData();
 
+      
 
         let render = [];
         allUser.map(c=>
@@ -76,6 +84,7 @@ let allUser = []
         }
         })
         console.log('render',render);
+
         
         const map = new mapboxgl.Map({
             container: 'map',
@@ -102,11 +111,11 @@ let allUser = []
                     'type': 'Feature',
                     'properties': {
                     'description':
-                    '<strong>Doctor</strong><p></p>'
+                    '<strong>Me</strong><p></p>'
                     },
                     'geometry': {
                     'type': 'Point',
-                    'coordinates':  [77.0661,28.7197]
+                    'coordinates':  [lng,lat]
                     }
                     },
             {
@@ -115,7 +124,7 @@ let allUser = []
             'type': 'Feature',
             'properties': {
             'description':
-            '<strong>Patient 1</strong><p>Currently here!</p>'
+            '<strong>Patient 1</strong><a href="/connect">Connect Now</a>'
             },
             'geometry': {
             'type': 'Point',
@@ -128,7 +137,7 @@ let allUser = []
                 'type': 'Feature',
                 'properties': {
                 'description':
-                '<strong>Patient 2</strong><p>Currently here!</p>'
+                '<strong>Patient 2</strong><a href="/connect">Connect Now</a>'
                 },
                 'geometry': {
                 'type': 'Point',
@@ -138,6 +147,8 @@ let allUser = []
             ]
             }
             });
+        new mapboxgl.Marker().setLngLat([77.0661,28.7197]).addTo(map.current)
+
             // Add a layer showing the places.
             map.addLayer({
             'id': 'places',
@@ -198,7 +209,6 @@ let allUser = []
     //             `<p>your current location</p>`
     //           )
     //       )
-        // new mapboxgl.Marker().setLngLat([77.0661,28.7197]).addTo(map.current)
 
     //   for(let e of allUser)
     //     {
@@ -235,7 +245,7 @@ let allUser = []
     return (
         <div>
            
-          <div id="map" ref={mapContainer} className="map-container" style={{'width':'1000px', 'height':'400px'}}></div>
+          <div id="map" ref={mapContainer} className="map-container" style={{'width':'100vw', 'height':'100vh'}}></div>
           <div>
                 Welcome : {user}
             </div>

@@ -17,6 +17,9 @@ const userSchema = new Schema({
         type: String
     },
     images: [ImageSchema],
+    ip: {
+        type: String
+    },
     geometry: {
         type: {
             type: String,
@@ -44,6 +47,10 @@ const userSchema = new Schema({
     },
     phone: {
         type: Number
+    },
+    isPatient: {
+        type: Number,
+        default: 0
     },
     isAvailable: {
         type: Boolean,

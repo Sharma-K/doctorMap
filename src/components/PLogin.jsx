@@ -2,7 +2,7 @@ import React, {useState, useEffect} from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import './Login.css'
-const Login = () => {
+const PLogin = () => {
 
     useEffect(()=> {
         if(localStorage.getItem('currentUser'))
@@ -15,7 +15,6 @@ const Login = () => {
         name: "",
         email: "",
         password: "",
-        hospital: "",
         phone: 0,
 
     })
@@ -37,7 +36,7 @@ const Login = () => {
         e.preventDefault();
 
         // const result = await (await axios.post('/register', ))
-        const result = await (await axios.post('/login',user)).data;
+        const result = await (await axios.post('http://localhost:5000/plogin/',user)).data;
 
     if(result)
     {
@@ -65,16 +64,13 @@ const Login = () => {
                 <div>
                 <input type="password" placeholder="password" name="password" onChange={changeHandler}  />
                 </div>
-               
-                
-               
                 <button >Submit</button>
             </form>
 
-            New to account?<Link to="/register" >Register</Link> 
+            New to account?<Link to="/pregister" >Register</Link> 
         </div>
         </div>
     )
 }
 
-export default Login;
+export default PLogin;
